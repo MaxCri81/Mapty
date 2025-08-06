@@ -8,15 +8,6 @@ const inputDistance = document.querySelector('.form__input--distance');
 const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
-
-// Leaflet popup object
-const leafletObj = {
-    maxWidth: 250,
-    minWidth: 100,
-    autoClose: false,
-    closeOnClick: false,
-    className: "running-popup",
-};
 /************************************************************************ Parent Class - Workout **********************************************************************/
 /**
  * A class that keep tracks of the workouts
@@ -40,6 +31,8 @@ class Workout {
 };
 /************************************************************************ Child Class - Running **********************************************************************/
 class Running extends Workout {
+    // Class field
+    type = "running";
     /**
      * Initialize instance fields
      * @param {Array} coordinates - latitude and longitude
@@ -64,6 +57,8 @@ class Running extends Workout {
 };
 /************************************************************************ Child Class - Cycling **********************************************************************/
 class Cycling extends Workout {
+    // Class field
+    type = "cycling";
     /**
      * Initialize instance fields
      * @param {Array} coordinates - latitude and longitude
@@ -93,8 +88,9 @@ class Cycling extends Workout {
  */
 class App {
     // Private Class fields
-    #map;
-    #mapEvent;
+    #map; // Leaflet map object
+    #mapEvent; // Leaflet map event
+    #workouts = []; // Array of workout objects 
     // Constructor, initialize instance methods and handlers.
     constructor() {
         // Geolocation coordinates
@@ -163,14 +159,59 @@ class App {
     _newWorkout(event) {
         // Prevent the default behaviour
         event.preventDefault();
+        // Latitude and longitude
+        const {lat, lng} = this.#mapEvent.latlng;
+        // Get data from the form
+        const type = inputType.value;
+        const distance = +inputDistance.value;
+        const duration = +inputDuration.value;
+        const cadenceElevation = type === "running" ? +inputCadence.value : +inputElevation.value;
+        // Show an alert window if the inputs in the form are not positive numbers (excluding the cadence)
+        if (!this._validInput(distance, duration, cadenceElevation, type)) return alert("Inputs must be positive numbers!");
+        // Create the object
+        const workout = type === "running" ? new Running([lat, lng], distance, duration, cadenceElevation) : new Cycling([lat, lng], distance, duration, cadenceElevation);
+        // Add the object to the list
+        this.#workouts.push(workout);
+        // Render the workout object in the map
+        this._renderWorkoutMarker(workout);
         // Clear the form
         inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = "";
-        const {lat, lng} = this.#mapEvent.latlng;
-        // Add a marker when clicking on the map
-        L.marker([lat, lng])
+    }
+
+    /**
+     * Returns true if every input in the array is a number and a positive number, otherwise false.
+     * The check for a positive number is only applied on the first 2 elements, if type is "cycling".
+     * @param  {...any} inputs to be checked. All numbers with the last element being a string, the "type". 
+     * @returns true if every input in the array is a number and a positive number, otherwise false
+     */
+    _validInput(...inputs) {
+        // the last element in inputs can be "running" or "cycling"
+        const type = inputs.pop();
+        // Check for positive number
+        const condition = (input) => input > 0;
+        return inputs.every(input => Number.isFinite(input)) && // chech that input is a number
+            type === "running" ? inputs.every(condition) : inputs.slice(0, -1).every(condition); // condition not applied on the last element if type is "cycling"
+    }
+
+    /**
+     * Render the marker at the location where the user clicked on the map
+     * @param {Object} workout - Workout object created from one of the child classes
+     */
+    _renderWorkoutMarker(workout) {
+        // Leaflet popup object
+        const leafletObj = {
+            maxWidth: 250,
+            minWidth: 100,
+            autoClose: false,
+            closeOnClick: false,
+            className: `${workout.type}-popup`, // custom class
+        };
+
+        // Add the marker on the map
+        L.marker(workout.coordinates)
             .addTo(this.#map) // add the marker on the map
             .bindPopup(L.popup(leafletObj)) // on clicking to the map binds leafletObj 
-            .setPopupContent("Workout") // set the popup content
+            .setPopupContent(workout.type) // set the popup content
             .openPopup();
     }
 };
