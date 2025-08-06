@@ -25,7 +25,7 @@ const leafletObj = {
 class Workout {
     // Class fields
     date = new Date();
-    id = (Date.now() + "").slice(-10); // id = the last 10 numers of a date to string
+    id = (Date.now() + "").slice(-10); // id = the last 10 numers of a date timestamp
     /**
      * Initialize instance fields
      * @param {Array} coordinates - latitude and longitude
