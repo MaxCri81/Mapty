@@ -55,6 +55,10 @@ a:visited {
   margin-bottom: 4rem;
 }
 
+h2 {
+  text-align: center;
+}
+
 .workouts {
   list-style: none;
   height: 77vh;
