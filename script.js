@@ -17,10 +17,79 @@ const leafletObj = {
     closeOnClick: false,
     className: "running-popup",
 };
+/************************************************************************ Parent Class - Workout **********************************************************************/
+/**
+ * A class that keep tracks of the workouts
+ * @version 06/08/25
+ */
+class Workout {
+    // Class fields
+    date = new Date();
+    id = (Date.now() + "").slice(-10); // id = the last 10 numers of a date to string
+    /**
+     * Initialize instance fields
+     * @param {Array} coordinates - latitude and longitude
+     * @param {number} distance in km/h
+     * @param {number} duration  in minutes
+     */
+    constructor(coordinates, distance, duration) {
+        this.coordinates = coordinates;
+        this.distance = distance;
+        this.duration = duration;
+    }
+};
+/************************************************************************ Child Class - Running **********************************************************************/
+class Running extends Workout {
+    /**
+     * Initialize instance fields
+     * @param {Array} coordinates - latitude and longitude
+     * @param {number} distance km/h
+     * @param {number} duration minutes
+     * @param {number} cadence steps/minute
+     */
+    constructor(coordinates, distance, duration, cadence) {
+        super(coordinates, distance, duration);
+        this.cadence = cadence;
+        this.calcPace();
+    }
+
+    /**
+     * Calculate the time taken to travel one kilometer, representing the pace
+     * @returns the pace in minutes.
+     */
+    calcPace() {
+        this.pace = this.duration / this.distance; 
+        return this.pace;
+    }
+};
+/************************************************************************ Child Class - Cycling **********************************************************************/
+class Cycling extends Workout {
+    /**
+     * Initialize instance fields
+     * @param {Array} coordinates - latitude and longitude
+     * @param {number} distance km/h
+     * @param {number} duration minutes
+     * @param {number} elevationGain meters
+     */
+    constructor(coordinates, distance, duration, elevationGain) {
+        super(coordinates, distance, duration);
+        this.elevationGain = elevationGain;
+        this.calcSpeed();
+    }
+
+    /**
+     * Calculate the distance covered in one hour, representing the travel speed 
+     * @returns the speed in hour
+     */
+    calcSpeed() {
+        this.speed = this.distance / (this.duration / 60);
+        return this.speed;
+    }
+};
 /**************************************************************************** Class App ******************************************************************************/
 /**
- * A class that monitors and manages application methods and event handlers.
- * @version 05/08/25
+ * A class that monitors and manages the user interface.
+ * @version 06/08/25
  */
 class App {
     // Private Class fields
@@ -38,11 +107,11 @@ class App {
 
     /** Get the user current coordinates */
     _getPosition() {
-        if (navigator.geolocation) navigator.geolocation.getCurrentPosition(this._loadMap.bind(this), this.error); // bind the current object to "this"
+        if (navigator.geolocation) navigator.geolocation.getCurrentPosition(this._loadMap.bind(this), this._error); // bind the current object to "this"
     }
 
     /** Callback function invoked upon failing retrieving geolocation coordinates. */
-    error() {
+    _error() {
         alert("Could not get your position");
     }
 
