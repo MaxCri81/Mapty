@@ -337,5 +337,12 @@ class App {
         // Render the workouts in the form
         this.#workouts.forEach(workout => this._renderWorkout(workout));
     }
+
+    /** Clear the local storage */
+    clearLocalStorage() {
+        localStorage.removeItem("workouts");
+        // Reload the page
+        location.reload();
+    }
 };
 const app = new App();
