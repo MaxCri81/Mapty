@@ -96,6 +96,7 @@ class App {
     // Private Class fields
     #map; // Leaflet map object
     #mapEvent; // Leaflet map event
+    #mapZoomLevel = 13; // Leaflet map zoom level
     #workouts = []; // Array of workout objects 
     // Constructor, initialize instance methods and handlers.
     constructor() {
@@ -105,6 +106,8 @@ class App {
         form.addEventListener("submit", this._newWorkout.bind(this)); // bind the current object to "this", otherwise it will point to the form
         // Attach an event listener when changing an option from the form selector
         inputType.addEventListener("change", this._toggleEvelationField);
+        // Attach an event listener when clicking a workout from the form list
+        containerWorkouts.addEventListener("click", this._moveToPopup.bind(this)); // bind the current object to "this", otherwise it will point to containerWorkouts
     }
 
     /** Get the user current coordinates */
@@ -127,8 +130,8 @@ class App {
         const {latitude} = position.coords;
         const {longitude} = position.coords;
         const coordinates = [latitude, longitude];
-        // Leaflet library
-        this.#map = L.map('map').setView(coordinates, 13); // 13: zoom level
+        // Leaflet library (coordinates, map zoom level)
+        this.#map = L.map('map').setView(coordinates, this.#mapZoomLevel); 
         // OpenStreetMap.HOT map style
         L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -286,6 +289,27 @@ class App {
             `;
         }
         form.insertAdjacentHTML("afterend", html);
+    }
+
+    /**
+     * Center the map on the marker corresponding to the selected workout in the form.
+     * @param {Object} event - ObjectEvent returned from the containerWorkouts listener.
+     * @returns null
+     */
+    _moveToPopup(event) {
+        // Select the closest element having class "workout" when clicking on the "ul" parent having class "workouts"
+        const workoutElement = event.target.closest(".workout");
+        if (!workoutElement) return;
+        // Find the workout with the id equal to the element data-id
+        const selectedWorkout = this.#workouts.find(element => element.id === workoutElement.dataset.id);
+        // Move the map
+        this.#map.setView(selectedWorkout.coordinates, this.#mapZoomLevel, {
+            // Object of options
+            animate: true,
+            pan: {
+                duration: 1
+            }
+        });
     }
 };
 const app = new App();
