@@ -152,12 +152,16 @@ class App {
         inputDistance.focus();
     }
 
+    /** Hide the form */
     _hideForm() {
         // Clear the form
         inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = "";
+        // To avoid showing the form transition effect of 1ms
+        form.style.display = "none";
         // Hide the form
-        // form.style.display = "none";
         form.classList.add("hidden");
+        // Restores the form display layout after the transition ended
+        setTimeout(()=> form.style.display = "grid", 1000);
     }
 
     
@@ -191,7 +195,7 @@ class App {
         this._renderMarker(workout);
         // Render the workout in the form
         this._renderWorkout(workout);
-
+        // Hide the form
         this._hideForm();
     }
 
@@ -228,10 +232,14 @@ class App {
         L.marker(workout.coordinates)
             .addTo(this.#map) // add the marker on the map
             .bindPopup(L.popup(leafletObj)) // on clicking to the map binds leafletObj 
-            .setPopupContent(workout.type) // set the popup content
+            .setPopupContent(`${workout.type === "running" ? "🏃‍♂️" : "🚴‍♀️"} ${workout.title}`) // set the popup content
             .openPopup();
     }
 
+    /**
+     * Add an HTML elemtent in the form for the workout 
+     * @param {Object} workout - Workout object created from one of the child classes
+     */
     _renderWorkout(workout) {
         let html = `
             <li class="workout workout--${workout.type}" data-id="${workout.id}">
