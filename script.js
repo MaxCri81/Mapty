@@ -102,6 +102,8 @@ class App {
     constructor() {
         // Geolocation coordinates
         this._getPosition();
+        // Get data from the local storage
+        this._getLocalStorage();
         // Attach an event listener when submitting the form (the enter key is pressed)
         form.addEventListener("submit", this._newWorkout.bind(this)); // bind the current object to "this", otherwise it will point to the form
         // Attach an event listener when changing an option from the form selector
@@ -139,6 +141,8 @@ class App {
         }).addTo(this.#map);
         // Attach a Leaflet event listener to the map object
         this.#map.on("click", this._showForm.bind(this));
+        // Render the markers, previously saved in the local storage, into the map
+        this.#workouts.forEach(workout => this._renderMarker(workout));
     }
 
     /**
@@ -200,6 +204,8 @@ class App {
         this._renderWorkout(workout);
         // Hide the form
         this._hideForm();
+        // Set local storage for the workouts
+        this._setLocalStorage();
     }
 
     /**
@@ -310,6 +316,26 @@ class App {
                 duration: 1
             }
         });
+    }
+
+    /**
+     * Local Storage API.
+     * Save the workouts array in the local storage.
+     */
+    _setLocalStorage() {
+        localStorage.setItem("workouts", JSON.stringify(this.#workouts));
+    }
+
+    /**
+     * Local Storage API.
+     * Retrieve the workouts from the local storage.
+     */
+    _getLocalStorage() {
+        const data = JSON.parse(localStorage.getItem("workouts"));
+        if (!data) return;
+        this.#workouts = data;
+        // Render the workouts in the form
+        this.#workouts.forEach(workout => this._renderWorkout(workout));
     }
 };
 const app = new App();
